@@ -16,13 +16,3 @@
         setype: httpd_config_t
         seuser: unconfined_u
         selevel: s0
-
-    - name: web/configure selinux booleans
-      seboolean:
-        name: "{{ item }}"
-        state: yes
-        persistenet: yes
-      with_items:
-        - httpd_execmem
-        - httpd_can_network_connect_db
-        - httpd_can_network_relay
