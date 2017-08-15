@@ -1,0 +1,10 @@
+---
+- src: git@github.com:chroot/php71.git
+  name: php71
+  version: master
+  scm: git
+  
+- src: git@github.com:chroot/httpd.git
+  name: httpd
+  version: master
+  scm: git

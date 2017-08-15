@@ -1,0 +1,5 @@
+---
+# vars file for web
+
+siteURL: "www.example.com"
+siteURLalias: "qwerty.example.com"

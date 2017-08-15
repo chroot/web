@@ -1,0 +1,14 @@
+---
+galaxy_info:
+  author: "Matt Wells"
+  company: NA
+  license: license (BSD)
+  min_ansible_version: 1.4
+  platforms:
+   - name: EL
+     versions:
+      - 7
+  categories:
+   - sys:marketing-dashboard
+dependencies:
+  - httpd

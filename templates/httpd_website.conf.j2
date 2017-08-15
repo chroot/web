@@ -1,0 +1,10 @@
+<VirtualHost *:443>
+
+        ServerAdmin     support@"{{ siteURL }}"
+        DocumentRoot    /var/www/html/
+        ServerAlias     "{{ siteURLalias }}"
+        ServerName      "{{ ansible_fqdn }}"
+        ErrorLog        /var/log/httpd/error_dashboard_"{{ siteURL }}".log
+        CustomLog       /var/log/httpd/custom_dashboard_"{{ siteURL }}".log combined
+        Options FollowSymLinks
+</VirtualHost>

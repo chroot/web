@@ -1,0 +1,28 @@
+---
+# tasks file for web
+- block:
+    - name: web/build environment
+      set_fact:
+        webEnvironment: "{{ ( ansible_hostname.split('-') )[1] }}"
+
+    - name: web/deploy httpd config file
+      template:
+        src: httpd_website.conf.j2
+        dest: /etc/httpd/conf.d/httpd_website.conf
+        owner: root
+        group: root
+        mode: 0644
+        serole: object_r
+        setype: httpd_config_t
+        seuser: unconfined_u
+        selevel: s0
+
+    - name: web/configure selinux booleans
+      seboolean:
+        name: "{{ items }}"
+        state: yes
+        persistenet: yes
+      with_items:
+        - httpd_execmem
+        - httpd_can_network_connect_db
+        - httpd_can_network_relay
