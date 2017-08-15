@@ -1,11 +1,29 @@
 #!/bin/bash
+# Version: 1.1
+# Summary: This is a bootstrap script that's used as a startup script.  When running on first boot it
+# the script stitches together several Ansible roles to make a "working" system.
+#	- Example of a 'aws-web-001' system
+#		- the first actions of the script will be to install the SSH keys, install Ansible and Git for use
+#		- next the script will install the `system-cron-ansible` playbook.  This playbook is used to harden the system and set the security "baseline" 
+#		- next parsing out the 'web' portion of it's name the scripts first Ansible role inside git that begins to set this host up as a 'web' server
+#			- in this example the 'web' server has a 'requirements' file; meaning it requires additional roles to work properly
+#			- by installing these 'requirements' the system then begins to stitch itself together; finally leaving a fully functional system
+# 			This was done for my production in Google Compute; I used a startup snippet to download this bootstrap file and run it on first boot
+# 	`cd /tmp/
+#	bash <(curl -s http://192.168.123.123/bootstrap)`
+# Group: System Tools
+# License: GPL
+# Requires: ansible, libselinux-python, git
+# Changelog:
+#       20150723 - Matt Wells
+#               1.0 - First deployment
 
-# md5 sums of files to be deployed
+# md5 sums of ssh files to be deployed
 ID_RSA_MD5='037ec7ef8946e4b623efc66a484a43e3'
 ID_RSA_PUB_MD5='8460453586f6a5a509a3ca5c50cc4ef5'
 KNOWN_HOSTS_MD5='3877a10be3b07d9fe5eb1930c14bec25'
 
-setupsvcHome () {  
+setupsvcHome () {  # this sets up the anisble service account that will be used
     chown svc_ansible:svc_ansible -R /home/svc_ansible/.ssh/
     chmod 600 /home/svc_ansible/.ssh/*
     if [ ! -d /opt/hardening ]; then
@@ -96,6 +114,7 @@ eTI4RzNza3VhMlNtVmkvdzR5Q0U2Z2JPRHFuVFdsZzcrd0M2MDR5ZEdYQThWSmlTNWFwNDNKWGlV
 RkZBYVE9PQo=
 EOM
 
+# just in case... I'll set the permissions again... and again...
 		chmod 0644 ${serviceHome}/.ssh/known_hosts
 		restorecon ${serviceHome}/.ssh/known_hosts
 		chown ${svcAccount}:${svcAccount} -R ${serviceHome}
@@ -103,33 +122,46 @@ EOM
 	fi
 }
 
-ansibleInstaller () {
+ansibleInstaller () { # now we're installing git and ansible
 yum install ansible git -y 
 if [ ! -f /var/log/ansible.log ]; then
 	touch /var/log/ansible.log
 	chmod 664 /var/log/ansible.log
-	chown svc_ansible /var/log/ansible.log
+	chown svc_ansible /var/log/ansible.log # Yep, more permissions
 	chcon system_u:object_r:var_log_t:s0 /var/log/ansible.log
 fi
-if [ ! -f /opt/hardening/localhost ]; then
+
+# just in case... more permissions
+chmod 664 /var/log/ansible.log
+chown svc_ansible /var/log/ansible.log
+chcon system_u:object_r:var_log_t:s0 /var/log/ansible.log
+
+if [ ! -f /opt/hardening/localhost ]; then # let's also look for an inventory file; while not always needed when dealing with 'localhost' it's just cleaner
 echo "[localhost]
 localhost ansible_connection=local" > /opt/hardening/localhost
 fi
 }
 
-ansibleRunner () {
-hostType=`hostname | awk -F\- '{print $2}'`
+ansibleRunner () { # here we go
+	hostType=`hostname | awk -F\- '{print $2}'` # with our example hostname, let's pull out the `www` portion
+        chown svc_ansible:svc_ansible -R /etc/ansible/roles # yep... permissions
 
-sed -i "s/#log_path/log_path/g" /etc/ansible/ansible.cfg
-sudo -u svc_ansible /usr/bin/ansible-pull --accept-host-key -f -d /opt/hardening/system-baseline -i /opt/hardening/localhost -U "git@github.com:chroot/system-cron.git" local.yml
-if [ "$?" != "0" ]; then
-	exit 1
-fi
+	sed -i "s/#log_path/log_path/g" /etc/ansible/ansible.cfg # because we're using a service account we need to change the logging
+	cd /opt/hardening/ # you don't 100% need to do this, but again it's cleaner and I don't have to worry about your shell settings
+	# this would be so much cleaner via tower
+	sudo -u svc_ansible /usr/bin/ansible-pull --accept-host-key -d /opt/hardening/system-cron-ansible -i /opt/hardening/localhost -U "git@github.com:chroot/system-cron.git" /opt/hardening/system-cron-ansible/local.yml
+	if [ "$?" != "0" ]; then
+		exit 1
+	fi
+	
+	if [ -f "/opt/hardening/sys-type.yml" ]; then # this is a bit of a mess however because of the role order you have to spawn a seperate process to do this well
+		sudo -u svc_ansible ansible-galaxy install -r /opt/hardening/sys-type.yml
+	fi		
 
-if [ -f "/etc/ansible/roles/${hostType}/requirements.yml"]; then
-	sudo -u svc_ansible ansible-galaxy install -r /etc/ansible/roles/${hostType}/requirements.yml
-	sudo -u svc_ansible ansible-playbook /opt/hardening/systype/sys-install.yml
-fi
+	if [ -f "/etc/ansible/roles/${hostType}/requirements.yml" ]; then # now the 'www' role is installed let's look for any 'requirements'; if we see one let's set it up
+		sudo -u svc_ansible ansible-galaxy install -r /etc/ansible/roles/${hostType}/requirements.yml
+		sudo -u svc_ansible ansible-playbook /opt/hardening/sys-install.yml -i /opt/hardening/localhost
+	fi
 }
 
 
