@@ -19,7 +19,7 @@
 
     - name: web/configure selinux booleans
       seboolean:
-        name: "{{ items }}"
+        name: "{{ item }}"
         state: yes
         persistenet: yes
       with_items:

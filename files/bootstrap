@@ -1,0 +1,138 @@
+#!/bin/bash
+
+# md5 sums of files to be deployed
+ID_RSA_MD5='037ec7ef8946e4b623efc66a484a43e3'
+ID_RSA_PUB_MD5='8460453586f6a5a509a3ca5c50cc4ef5'
+KNOWN_HOSTS_MD5='3877a10be3b07d9fe5eb1930c14bec25'
+
+setupsvcHome () {  
+    chown svc_ansible:svc_ansible -R /home/svc_ansible/.ssh/
+    chmod 600 /home/svc_ansible/.ssh/*
+    if [ ! -d /opt/hardening ]; then
+    	mkdir -p /opt/hardening
+    	chmod 2770 /opt/hardening
+    	chown -R svc_ansible:svc_ansible /opt/hardening
+    fi
+    # These SSH Keys are base64 encoded.
+    [ -f ${serviceHome}/.ssh/id_rsa.pub ] || touch ${serviceHome}/.ssh/id_rsa.pub
+
+    CUR_SUM=`gimmeSum ${serviceHome}/.ssh/id_rsa.pub`
+
+    if [ $ID_RSA_PUB_MD5 != $CUR_SUM ]; then
+
+		base64 -d > ${serviceHome}/.ssh/id_rsa.pub << EOM
+c3NoLXJzYSBBQUFBQjNOemFDMXljMkVBQUFBREFRQUJBQUFCQVFEcExDQWRsQkxqSmNMczhzQ2I4
+Z3NzUDA3OURIR2dRWXk1WW16UDNTamZoWVdhcSttVkJJZHRZM1Qvam92dGwyYjNrZ29hUlNqMWFK
+bWg3cTlLWXNwMzYvTVVnOTB6c3hRbmViTGJpTlNzMnlLeVZIM3lvV25nM29zLzROQ09FNDVPTm4r
+RStwaEZ5RU56MXluQ0k1QVUrcW1tc002bDN1YkJJeXdsZEFlRXRwaTdEY25lbzE2NC9naGo2blJv
+eUpSdVFzdEpPRUdsOFg2WnVWVElTcmEwSGlWcWppRkNHc3FmZnQ5UEZUT2FSMmVuZUJDYkM0VTZ0
+VzlxMHNnRWZqNW5YVW9XL3FhVzVQckRyaEVyQnVrdHNkeEdrbzV0T05jeE0xNlczVTJsQXdjVVpW
+U2RFcFI5c2huMkZFYkNHRk5QSVBpb1RwY0RTdkdOalZrdVRMVG4gc3ZjX2Fuc2libGVAa2lkZmxh
+c2gubm9pcC5tZQo=
+EOM
+
+	restorecon ${serviceHome}/.ssh/id_rsa.pub
+	chown ${svcAccount}:${svcAccount} -R ${serviceHome}
+	fi
+
+    [ -f ${serviceHome}/.ssh/id_rsa ] || touch ${serviceHome}/.ssh/id_rsa
+
+    CUR_SUM=`gimmeSum ${serviceHome}/.ssh/id_rsa`
+
+    if [ $ID_RSA_MD5 != $CUR_SUM ]; then
+
+		base64 -d > ${serviceHome}/.ssh/id_rsa << EOM
+LS0tLS1CRUdJTiBSU0EgUFJJVkFURSBLRVktLS0tLQpNSUlFcFFJQkFBS0NBUUVBNlN3Z0haUVM0
+eVhDN1BMQW0vSUxMRDlPL1F4eG9FR011V0pzejkwbzM0V0ZtcXZwCmxRU0hiV04wLzQ2TDdaZG05
+NUlLR2tVbzlXaVpvZTZ2U21MS2QrdnpGSVBkTTdNVUozbXkyNGpVck5zaXNsUjkKOHFGcDRONkxQ
+K0RRamhPT1RqWi9oUHFZUmNoRGM5Y3B3aU9RRlBxcHByRE9wZDdtd1NNc0pYUUhoTGFZdXczSgoz
+cU5ldVA0SVkrcDBhTWlVYmtMTFNUaEJwZkYrbWJsVXlFcTJ0QjRsYW80aFFocktuMzdmVHhVem1r
+ZG5wM2dRCm13dUZPclZ2YXRMSUJINCtaMTFLRnY2bWx1VDZ3NjRSS3dicExiSGNScEtPYlRqWE1U
+TmVsdDFOcFFNSEZHVlUKblJLVWZiSVo5aFJHd2hoVFR5RDRxRTZYQTByeGpZMVpMa3kwNXdJREFR
+QUJBb0lCQVFDUVY4cUJ4UHAwTnhvVwpDS2lIWVN6ZGRVdDJocytJUDB2WUx6L2c1YTI1d1RSVjdY
+b3B6Nlh1WjVVejVwQmt3a2J4bHl3OTJ2WmlCU0NtCkI5WG5uSVJ0L0ZoOEtLMDBwZlVpQXNwZjhM
+S0hWeGlCZ0tCL0pNRWdmV09DWmE5MVpGSEJ4U2Juc1NHMmdTU1EKZjIvUVNLZVc5UjAwblZzdmYy
+OGx2SnBGalRCaVRHQjFvbTNTVHNGdGNmSGxzVXNmcTFPUm40WkUzRWpPaWdDbgpBN1V6VThJMEEv
+bXIxZ3owbVFHTmpaQzczSjBGaFhvTGVWSlFUblVTRG0wM00xV2FqUWlLYzdCclovL2R4aXBFCmFW
+Sk9CbS9YSTlkMjdsdnJmM0dQMVFJMlM3eW85S2hmbDJrcHJzRnlWQmJoRHJiME04eDVsU1VjYkpB
+NGk0ZnIKSW9XeWUvYnhBb0dCQVBmdG5VLzh5L0pFOVhCaUZiQWdoY2dENDc4MFNVY0N6ZHV6ZXFq
+YlB3aEpRY01NTC9yZgorbkJIZTJqaGVNbW13bURKTWFJTEFnVHBzSTM5UEJzY3o3amNmaTczOWNR
+b1pHMEE3alJPL01weDVPc2ZrM2poCkxQZlI2YnB4SzYweUR6eVdUL1BQTEVLNXZ3SkZEY0RRR0tZ
+b1IzZEdtdXR3UzZYMU43TGdHQUV0QW9HQkFQREQKaHVTWCtOZndHem1zZVRQSnR6bHNLQXlZeGRv
+ZlhmSlRCQVk2dEQwNmhrZGpUZE82MGpVNWNNQmNWbzVDTkFWUApXeFJ1aWRCNS9MN0RTZU9tNlRs
+SU5kbjRFdGl0ZlR3QThiaHhIZWpJK2w3cTZiWitMa3N0bjZ3dGxPOWlQMTFnCmhBMWRrWEVSdDh1
+ZlgxZ0hBYTIvc2QrcmF4TXcvWm5zbUx1d3VKTGpBb0dCQU9VQlozaDF3aEJqSCs2UnV3UzMKMWJx
+OTFRVk5ENDUzQ1owdytGQzJTMCtsRXdoTjNwZTFnVWRxejVRK0Irc0RqTElIeFQrdk9VcytiQ1dM
+VHBTZwpsVUprOEcwRC90QVVtMGFRUUhheXF3OTRDb0lmNVlFWFJRa1hyUFBaQ3dYc29tUk5WMGFX
+QzRVS3UyTW1VNkRRCjFxUEx1czl5dVRCVnhwcGhtZlF3eUJ0MUFvR0JBS0tIUzd0cS85Zzl4Uk0w
+NUFqYXhlNWtuZENMSFJ6M0NjTjQKMlFHZmhXYkQ2RHV1eEs0R3NycXRVUGo2SEpBaUR0MzZ5UUJN
+OG9taW44VGpMakVZenQ0VmFnei9rekZrUkdOSwpPK01Ic1dvZ3FpdURKMHhEZDlyV0xMRGRnR250
+Qjl0d09SU1Fzb3NDcS9Fd1gvdWJsejJFWjM0WFNNd0d5VnVzClJScUczTUtEQW9HQVBMZHNJbjBB
+Z1FQRFJ6MUFjQ0w1VDR0VlJPT3d4Q2R0VFZEUVhWYkxhZXhCS1llQ2RONEsKTXdXZlBqUUl4cVZE
+RTFCcnlhZXV6MWV0RmVQdkY1RFdTY0Nrem5BNWo1UnoxRmhNZ2paYkhtMkdpVGhpLzVjVwpFUUdq
+WE0wZExUV0dhV0F3bkE3eVlFMms3WHZCcjVFK1hFSk1aaG5vTlRVZ3lIWDF1RzVsQzEwPQotLS0t
+LUVORCBSU0EgUFJJVkFURSBLRVktLS0tLQo=
+EOM
+
+		restorecon ${serviceHome}/.ssh/id_rsa
+		chmod 0600 ${serviceHome}/.ssh/id_rsa
+		chown ${svcAccount}:${svcAccount} -R ${serviceHome}
+	fi
+
+    [ -f ${serviceHome}/.ssh/known_hosts ] || touch ${serviceHome}/.ssh/known_hosts
+
+    CUR_SUM=`gimmeSum ${serviceHome}/.ssh/known_hosts`
+
+    if [ $KNOWN_HOSTS_MD5 != $CUR_SUM ]; then
+
+		base64 -d > ${serviceHome}/.ssh/known_hosts << EOM
+Z2l0aHViLmNvbSwxOTIuMzAuMjUzLjExMyBzc2gtcnNhIEFBQUFCM056YUMxeWMyRUFBQUFCSXdB
+QUFRRUFxMkE3aFJHbWRubTl0VURiTzlJRFN3Qks2VGJRYStQWFlQQ1B5NnJiVHJUdHc3UEhrY2NL
+cnBwMHlWaHA1SGRFSWNLcjZwTGxWREJmT0xYOVFVc3lDT1Ywd3pmaklKTmxHRVlzZGxMSml6SGhi
+bjJtVWp2U0FIUXFaRVRZUDgxZUZ6TFFOblBIdDRFVlZVaDdWZkRFU1U4NEtlem1ENVFsV3BYTG12
+VTMxL3lNZitTZTh4aEhUdktTQ1pJRkltV3dvRzZtYlVvV2Y5bnpwSW9hU2pCK3dlcXFVVW1wYWFh
+c1hWYWw3MkorVVgyQisyUlBXM1JjVDBlT3pRZ3FsSkwzUktyVEp2ZHNqRTNKRUF2R3EzbEdIU1pY
+eTI4RzNza3VhMlNtVmkvdzR5Q0U2Z2JPRHFuVFdsZzcrd0M2MDR5ZEdYQThWSmlTNWFwNDNKWGlV
+RkZBYVE9PQo=
+EOM
+
+		chmod 0644 ${serviceHome}/.ssh/known_hosts
+		restorecon ${serviceHome}/.ssh/known_hosts
+		chown ${svcAccount}:${svcAccount} -R ${serviceHome}
+
+	fi
+}
+
+ansibleInstaller () {
+yum install ansible git -y 
+if [ ! -f /var/log/ansible.log ]; then
+	touch /var/log/ansible.log
+	chmod 664 /var/log/ansible.log
+	chown svc_ansible /var/log/ansible.log
+	chcon system_u:object_r:var_log_t:s0 /var/log/ansible.log
+fi
+if [ ! -f /opt/hardening/localhost ]; then
+echo "[localhost]
+localhost ansible_connection=local" > /opt/hardening/localhost
+fi
+}
+
+ansibleRunner () {
+hostType=`hostname | awk -F\- '{print $2}'`
+
+sed -i "s/#log_path/log_path/g" /etc/ansible/ansible.cfg
+sudo -u svc_ansible /usr/bin/ansible-pull --accept-host-key -f -d /opt/hardening/system-baseline -i /opt/hardening/localhost -U "git@github.com:chroot/system-cron.git" local.yml
+if [ "$?" != "0" ]; then
+	exit 1
+fi
+
+if [ -f "/etc/ansible/roles/${hostType}/requirements.yml"]; then
+	sudo -u svc_ansible ansible-galaxy install -r /etc/ansible/roles/${hostType}/requirements.yml
+	sudo -u svc_ansible ansible-playbook /opt/hardening/systype/sys-install.yml
+fi
+}
+
+
+setupsvcHome
+ansibleInstaller
+ansibleRunner
