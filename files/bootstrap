@@ -24,6 +24,7 @@ ID_RSA_PUB_MD5='8460453586f6a5a509a3ca5c50cc4ef5'
 KNOWN_HOSTS_MD5='3877a10be3b07d9fe5eb1930c14bec25'
 
 setupsvcHome () {  # this sets up the anisble service account that will be used
+    useradd svc_ansible
     chown svc_ansible:svc_ansible -R /home/svc_ansible/.ssh/
     chmod 600 /home/svc_ansible/.ssh/*
     if [ ! -d /opt/hardening ]; then
